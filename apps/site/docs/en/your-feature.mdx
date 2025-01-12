@@ -1,0 +1,183 @@
+
+# Midscene.js Documentation
+
+Midscene.js is a powerful library that enables AI-driven browser automation and testing through natural language commands. It supports multiple integration methods and provides a robust set of features for interacting with web pages.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Integration Methods](#integration-methods)
+- [Core Features](#core-features)
+- [API Reference](#api-reference)
+- [Caching](#caching)
+- [Configuration](#configuration)
+- [Debug Options](#debug-options)
+
+## Installation
+
+```bash
+npm install @midscene/web tsx --save-dev
+```
+
+## Getting Started
+
+First, configure your OpenAI API key:
+
+```bash
+# Replace with your own key
+export OPENAI_API_KEY="sk-..."
+```
+
+## Integration Methods
+
+Midscene supports two primary integration methods:
+
+### 1. Bridge Mode via Chrome Extension
+
+```typescript
+// demo-new-tab.ts
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+Promise.resolve(
+  (async () => {
+    // Connect to a new tab on desktop Chrome
+    await connectNewTabWithUrl("https://www.bing.com");
+
+    // Execute actions using natural language
+    await ai('type "AI 101" and hit Enter');
+    await sleep(3000);
+
+    await aiAssert("there are some search results");
+  })()
+);
+```
+
+### 2. Playwright Integration
+
+Configure your tests to use Midscene's natural language commands with Playwright.
+
+## Core Features
+
+### Natural Language Actions
+
+Midscene provides three main capabilities for interacting with web pages:
+
+1. **Actions** (.ai, .aiAction)
+2. **Queries** (.aiQuery)
+3. **Assertions** (.aiAssert)
+
+Example usage:
+
+```typescript
+// Perform actions
+await ai('Enter "Learn JS today" in the task box, then press Enter to create');
+
+// Extract data
+const items = await aiQuery({
+  itemTitle: 'string',
+  price: 'Number'
+});
+
+// Make assertions
+await aiAssert('There is a category filter on the left');
+```
+
+## API Reference
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `aiAction(steps: string)` or `ai(steps: string)` | Execute actions on the page using natural language | `await ai('Click the submit button')` |
+| `aiQuery(dataDemand: any)` | Extract structured data from the page | `await aiQuery('{name: string, price: number}[]')` |
+| `aiAssert(assertion: string, errorMsg?: string)` | Perform assertions based on page content | `await aiAssert('The price is $7.99')` |
+| `aiWaitFor(assertion: string, options)` | Wait for a condition to be met | `await aiWaitFor("items are loaded")` |
+
+### Bridge Mode API
+
+| Method | Description |
+|--------|-------------|
+| `connectCurrentTab()` | Connect to active Chrome tab |
+| `connectNewTabWithUrl(url: string)` | Create and connect to new tab |
+| `destroy()` | End the connection |
+
+## Caching
+
+Enable caching to improve performance and stability:
+
+```bash
+MIDSCENE_CACHE=true playwright test
+```
+
+Cache benefits:
+- Reduces execution time
+- Improves stability
+- Stores element recognition patterns
+
+## Configuration
+
+### Model Configuration
+
+```bash
+# Required
+export OPENAI_API_KEY="your-key-here"
+
+# Optional
+export OPENAI_BASE_URL="https://custom-endpoint"
+export OPENAI_USE_AZURE="true"
+export MIDSCENE_MODEL_NAME="custom-model"
+export MIDSCENE_OPENAI_INIT_CONFIG_JSON='{"baseURL":"..."}'
+export MIDSCENE_OPENAI_SOCKS_PROXY="socks5://127.0.0.1:1080"
+export OPENAI_MAX_TOKENS=2048
+```
+
+### Supported Models
+
+- gpt-4o (default)
+- claude-3-opus-20240229
+- gemini-1.5-pro
+- qwen-vl-max-latest
+- doubao-vision-pro-32k
+
+## Debug Options
+
+### AI Profiling
+
+Enable AI call profiling:
+
+```bash
+export MIDSCENE_DEBUG_AI_PROFILE=1
+```
+
+### LangSmith Integration
+
+```bash
+export MIDSCENE_LANGSMITH_DEBUG=1
+export LANGCHAIN_TRACING_V2=true
+export LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
+export LANGCHAIN_API_KEY="your-key"
+export LANGCHAIN_PROJECT="project-name"
+```
+
+## Best Practices
+
+1. Use clear, descriptive prompts for actions
+2. Prefer aiQuery with JavaScript assertions for reliable testing
+3. Enable caching in production environments
+4. Use appropriate timeouts for aiWaitFor operations
+5. Configure appropriate model settings for your use case
+
+## Limitations
+
+- Cannot handle conditional or loop operations in actions
+- aiQuery results are not cached
+- Bridge mode doesn't support custom viewports or user agents
+
+## Error Handling
+
+```typescript
+try {
+  await aiAssert('Price is correct', 'Price validation failed');
+} catch (error) {
+  console.error('Assertion failed:', error.message);
+}
+```
